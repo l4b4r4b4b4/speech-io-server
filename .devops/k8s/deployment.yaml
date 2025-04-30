@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dia-tts-server
+  name: speech-io-server
   labels:
-    app: dia-tts-server
+    app: speech-io-server
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dia-tts-server
+      app: speech-io-server
   template:
     metadata:
       labels:
-        app: dia-tts-server
+        app: speech-io-server
     spec:
       containers:
-      - name: dia-tts-server
-        image: nextboss/dia-tts-server
+      - name: speech-io-server
+      image: nextboss/speech-io-server
         ports:
         - containerPort: 8003
           name: http
@@ -57,10 +57,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: dia-tts-server
+  name: speech-io-server
 spec:
   selector:
-    app: dia-tts-server
+    app: speech-io-server
   ports:
   - port: 8003
     targetPort: 8003

@@ -2,16 +2,16 @@ volumes:
   model_cache:
 
 services:
-  dia-tts-server:
-    image: ghcr.io/l4b4r4b4b4/dia-tts-server:latest
+  speech-io-server:
+    image: ghcr.io/l4b4r4b4b4/speech-io-server:latest
     ports:
       - 8003:8003
     volumes:
       - model_cache:/app/model_cache
-      - ./reference_audio:/app/reference_audio
-      - ./outputs:/app/outputs
-      - ./voices:/app/voices
-      - ./config.yaml:/app/config.yaml:rw
+      - ./app/reference_audio:/app/reference_audio
+      - ./app/outputs:/app/outputs
+      - ./app/voices:/app/voices
+      - ./app/config.yaml:/app/config.yaml:rw
     devices:
       - nvidia.com/gpu=all
     device_cgroup_rules:

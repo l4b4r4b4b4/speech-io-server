@@ -146,8 +146,8 @@ Follow these steps carefully to get the server running.
 
 **1. Clone the Repository**
 ```bash
-git clone https://github.com/devnen/dia-tts-server.git
-cd dia-tts-server
+git clone https://github.com/devnen/speech-io-server.git
+cd speech-io-server
 ```
 
 **2. Set up Python Virtual Environment**
@@ -156,7 +156,7 @@ Using a virtual environment is crucial!
 
 *   **Windows (PowerShell):**
     ```powershell
-    # In the dia-tts-server directory
+    # In the speech-io-server directory
     python -m venv venv
     .\venv\Scripts\activate
     # Your prompt should now start with (venv)
@@ -167,7 +167,7 @@ Using a virtual environment is crucial!
     # Ensure prerequisites are installed
     sudo apt update && sudo apt install python3 python3-venv python3-pip libsndfile1 ffmpeg -y
 
-    # In the dia-tts-server directory
+    # In the speech-io-server directory
     python3 -m venv venv
     source venv/bin/activate
     # Your prompt should now start with (venv)
@@ -266,8 +266,8 @@ Run Dia TTS Server easily using Docker.
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/devnen/dia-tts-server.git
-    cd dia-tts-server
+    git clone https://github.com/l4b4r4b4b4/speech-io-server.git
+    cd speech-io-server
     ```
 2.  **(Optional) Initial Configuration via `.env`:** If `config.yaml` doesn't exist yet, you can create a `.env` file (e.g., `cp env.example.txt .env`) to seed the initial `config.yaml` when the container starts. Otherwise, defaults will be used.
 3.  **Build and start the container:**
@@ -285,7 +285,7 @@ Run Dia TTS Server easily using Docker.
     ```bash
     docker compose down
     ```
-7.  **Configuration Note:** Once running, configuration changes should ideally be made by editing the `config.yaml` file within the container (e.g., using `docker compose exec dia-tts-server nano /app/config.yaml`) or via the UI, rather than relying on the `.env` file (unless resetting).
+7.  **Configuration Note:** Once running, configuration changes should ideally be made by editing the `config.yaml` file within the container (e.g., using `docker compose exec speech-io-server nano /app/config.yaml`) or via the UI, rather than relying on the `.env` file (unless resetting).
 
 ### Docker Volumes
 

@@ -449,7 +449,7 @@ These steps are applied sequentially to the final concatenated audio (if chunkin
 
 ### 8.1 Directory Structure
 
-```dia-tts-server/
+```speech-io-server/
 │
 ├── .env                  # Initial configuration seeding (optional, read only once if config.yaml missing)
 ├── config.yaml           # PRIMARY configuration file (created/managed by server)
@@ -548,8 +548,8 @@ Follow these steps carefully to get the server running.
 ### 10.1 Cloning the Repository
 
 ```bash
-git clone https://github.com/devnen/dia-tts-server.git # Replace if needed
-cd dia-tts-server
+git clone https://github.com/devnen/speech-io-server.git # Replace if needed
+cd speech-io-server
 ```
 
 ### 10.2 Setting up Python Virtual Environment
@@ -558,7 +558,7 @@ Using a virtual environment is strongly recommended.
 
 #### 10.2.1 Windows Setup
 ```powershell
-# In the dia-tts-server directory
+# In the speech-io-server directory
 python -m venv venv
 .\venv\Scripts\activate
 # Your prompt should now start with (venv)
@@ -569,7 +569,7 @@ python -m venv venv
 # Ensure prerequisites are installed
 sudo apt update && sudo apt install python3 python3-venv python3-pip libsndfile1 ffmpeg -y
 
-# In the dia-tts-server directory
+# In the speech-io-server directory
 python3 -m venv venv
 source venv/bin/activate
 # Your prompt should now start with (venv)
@@ -691,7 +691,7 @@ The Web UI provides sections to manage parts of the `config.yaml` file:
 ## 12. Running the Server
 
 1.  **Activate Virtual Environment:** (`(venv)` prefix).
-2.  **Navigate to Project Root:** (`dia-tts-server` directory).
+2.  **Navigate to Project Root:** (`speech-io-server` directory).
 3.  **(Optional First Run): Download Models:** Run `python download_model.py` to pre-download the configured Dia and Whisper models without starting the server. Monitor terminal output.
 4.  **Run Server:**
     ```bash
