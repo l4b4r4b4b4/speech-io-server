@@ -1,4 +1,7 @@
-FROM nvidia/cuda:12.8.1-devel-ubuntu22.04
+# Build with --build-arg CUDA_VARIANT=runtime for slim version
+# Default is devel for compatibility with CUDA compilation needs
+ARG CUDA_VARIANT=devel
+FROM nvidia/cuda:12.8.1-${CUDA_VARIANT}-ubuntu22.04
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1

@@ -1,13 +1,20 @@
-# Dia TTS Server: OpenAI-Compatible API with Web UI, Large Text Handling & Built-in Voices
+# speech-io-server: OpenAI-compatible Speech API (STT/TTS)
+**On-Premise speech processing server featuring both Text-to-Speech and Speech-to-Text capabilities in a single platform.**
 
-**Self-host the powerful [Nari Labs Dia TTS model](https://github.com/nari-labs/dia) with this enhanced FastAPI server! Features an intuitive Web UI, flexible API endpoints (including OpenAI-compatible `/v1/audio/speech`), support for realistic dialogue (`[S1]`/`[S2]`), improved voice cloning, large text processing via intelligent chunking, and consistent, reproducible voices using 43 built-in ready-to-use voices and generation seeds feature.**
-
-Now with improved speed and reduced VRAM usage. Defaults to efficient BF16 SafeTensors for reduced VRAM and faster inference, with support for original `.pth` weights. Runs accelerated on NVIDIA GPUs (CUDA) with CPU fallback.
+## Quick Start
+Run the following commands to start the server:
+```bash
+git clone https://github.com/devnen/speech-io-server.git
+cd speech-io-server
+cp config.example.yaml app/config.yaml
+docker compose up -d
+docker compose logs -f
+```
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 [![Python Version](https://img.shields.io/badge/Python-3.10+-blue.svg?style=for-the-badge)](https://www.python.org/downloads/)
 [![Framework](https://img.shields.io/badge/Framework-FastAPI-green.svg?style=for-the-badge)](https://fastapi.tiangolo.com/)
-[![Model Format](https://img.shields.io/badge/Weights-SafeTensors%20/%20pth-orange.svg?style=for-the-badge)](https://github.com/huggingface/safetensors)
+[![Models](https://img.shields.io/badge/Models-Dia%20+%20Whisper-orange.svg?style=for-the-badge)](https://github.com/huggingface/safetensors)
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg?style=for-the-badge)](https://www.docker.com/)
 [![Web UI](https://img.shields.io/badge/Web_UI-Included-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](#)
 [![CUDA Compatible](https://img.shields.io/badge/CUDA-Compatible-76B900?style=for-the-badge&logo=nvidia&logoColor=white)](https://developer.nvidia.com/cuda-zone)
@@ -20,80 +27,31 @@ Now with improved speed and reduced VRAM usage. Defaults to efficient BF16 SafeT
 
 ---
 
-## 🗣️ Overview: Enhanced Dia TTS Access
-
-The original [Dia 1.6B TTS model by Nari Labs](https://github.com/nari-labs/dia) provides incredible capabilities for generating realistic dialogue, complete with speaker turns and non-verbal sounds like `(laughs)` or `(sighs)`. This project builds upon that foundation by providing a robust **[FastAPI](https://fastapi.tiangolo.com/) server** that makes Dia significantly easier to use and integrate.
-
-We solve the complexity of setting up and running the model by offering:
-
-*   An **OpenAI-compatible API endpoint**, allowing you to use Dia TTS with tools expecting OpenAI's API structure.
-*   A **modern Web UI** for easy experimentation, preset loading, reference audio management, and generation parameter tuning. The interface design draws inspiration from **[Lex-au's Orpheus-FastAPI project](https://github.com/Lex-au/Orpheus-FastAPI)**, adapting its intuitive layout and user experience for Dia TTS.
-*   **Large Text Handling:** Intelligently splits long text inputs into manageable chunks based on sentence structure and speaker tags, processes them sequentially, and seamlessly concatenates the audio.
-*   **Predefined Voices:** Select from 43 curated, ready-to-use synthetic voices for consistent and reliable output without cloning setup.
-*   **Improved Voice Cloning:** Enhanced pipeline with automatic audio processing and transcript handling (local `.txt` file or experimental Whisper fallback).
-*   **Consistent Generation:** Achieve consistent voice output across multiple generations or text chunks by using the "Predefined Voices" or "Voice Cloning" modes, optionally combined with a fixed integer **Seed**.
-*   Support for both original `.pth` weights and modern, secure **[SafeTensors](https://github.com/huggingface/safetensors)**, defaulting to a **BF16 SafeTensors** version which uses roughly half the VRAM and offers improved speed.
-*   Automatic **GPU (CUDA) acceleration** detection with fallback to CPU.
-*   Configuration primarily via `config.yaml`, with `.env` used for initial setup/reset.
-*   **Docker support** for easy containerized deployment with [Docker](https://www.docker.com/).
-
-This server is your gateway to leveraging Dia's advanced TTS capabilities seamlessly, now with enhanced stability, voice consistency, and large text support.
-
-## ✨ What's New (v1.4.0 vs v1.0.0)
-
-This version introduces significant improvements and new features:
-
-**🚀 New Features:**
-
-*   **Large Text Processing (Chunking):**
-    *   Automatically handles long text inputs by intelligently splitting them into smaller chunks based on sentence boundaries and speaker tags (`[S1]`/`[S2]`).
-    *   Processes each chunk individually and seamlessly concatenates the resulting audio, overcoming previous generation limits.
-    *   Configurable via UI toggle ("Split text into chunks") and chunk size slider.
-*   **Predefined Voices:**
-    *   Added support for using 43 curated, ready-to-use synthetic voices stored in the `./voices` directory.
-    *   Selectable via UI dropdown ("Predefined Voices" mode). Server automatically uses required transcripts.
-    *   Provides reliable voice output without manual cloning setup and avoids potential licensing issues.
-*   **Enhanced Voice Cloning:**
-    *   Improved backend pipeline for robustness.
-    *   Automatic reference audio processing: mono conversion, resampling to 44.1kHz, truncation (~20s).
-    *   Automatic transcript handling: Prioritizes local `.txt` file (recommended for accuracy) -> **experimental Whisper generation** if `.txt` is missing. Backend handles transcript prepending automatically.
-    *   Robust reference file finding handles case-insensitivity and extensions.
-*   **Whisper Integration:** Added `openai-whisper` for automatic transcript generation as an experimental fallback during cloning. Configurable model (`WHISPER_MODEL_NAME` in `config.yaml`).
-*   **API Enhancements:**
-    *   `/tts` endpoint now supports `transcript` (for explicit clone transcript), `split_text`, `chunk_size`, and `seed`.
-    *   `/v1/audio/speech` endpoint now supports `seed`.
-*   **Generation Seed:** Added `seed` parameter to UI and API for influencing generation results. Using a fixed integer seed *in combination with* Predefined Voices or Voice Cloning helps maintain consistency across chunks or separate generations. Use -1 for random variation.
-*   **Terminal Progress:** Generation of long text (using chunking) now displays a `tqdm` progress bar in the server's terminal window.
-*   **UI Configuration Management:** Added UI section to view/edit `config.yaml` settings and save generation defaults.
-*   **Configuration System:** Migrated to `config.yaml` for primary runtime configuration, managed via `config.py`. `.env` is now used mainly for initial seeding or resetting defaults.
-
-**🔧 Fixes & Enhancements:**
-
-*   **VRAM Usage Fixed & Optimized:** Resolved memory leaks during inference and significantly reduced VRAM usage (approx. 14GB+ down to ~7GB) through code optimizations, fixing memory leaks, and BF16 default.
-*   **Performance:** Significant speed improvements reported (approaching 95% real-time on tested hardware: AMD Ryzen 9 9950X3D + NVIDIA RTX 3090).
-*   **Audio Post-Processing:** Automatically applies silence trimming (leading/trailing), internal silence reduction, and unvoiced segment removal (using Parselmouth) to improve audio quality and remove artifacts.
-*   **UI State Persistence:** Web UI now saves/restores text input, voice mode selection, file selections, and generation parameters (seed, chunking, sliders) in `config.yaml`.
-*   **UI Improvements:** Better loading indicators (shows chunk processing), refined chunking controls, seed input field, theme toggle, dynamic preset loading from `ui/presets.yaml`, warning modals for chunking/generation quality.
-*   **Cloning Workflow:** Backend now handles transcript prepending automatically. UI workflow simplified (user selects file, enters target text).
-*   **Dependency Management:** Added `tqdm`, `PyYAML`, `openai-whisper`, `parselmouth` to `requirements.txt`.
-*   **Code Refactoring:** Aligned internal engine code with refactored `dia` library structure. Updated `config.py` to use `YamlConfigManager`.
-
 ## ✅ Features
 
-*   **Core Dia Capabilities (via [Nari Labs Dia](https://github.com/nari-labs/dia)):**
-    *   🗣️ Generate multi-speaker dialogue using `[S1]` / `[S2]` tags.
-    *   😂 Include non-verbal sounds like `(laughs)`, `(sighs)`, `(clears throat)`.
-    *   🎭 Perform voice cloning using reference audio prompts.
+*   **Core Speech Processing Capabilities:**
+    *   **Text-to-Speech (via [Nari Labs Dia](https://github.com/nari-labs/dia)):**
+        *   🗣️ Generate multi-speaker dialogue using `[S1]` / `[S2]` tags.
+        *   😂 Include non-verbal sounds like `(laughs)`, `(sighs)`, `(clears throat)`.
+        *   🎭 Perform voice cloning using reference audio prompts.
+    *   **Speech-to-Text (via [OpenAI Whisper](https://github.com/openai/whisper)):**
+        *   🎤 Transcribe speech from various audio formats.
+        *   🌎 Support for multiple languages with auto-detection.
+        *   ⏱️ Optional timestamp generation for word/segment alignment.
 *   **Enhanced Server & API:**
     *   ⚡ Built with the high-performance **[FastAPI](https://fastapi.tiangolo.com/)** framework.
-    *   🤖 **OpenAI-Compatible API Endpoint** (`/v1/audio/speech`) for easy integration (now includes `seed`).
-    *   ⚙️ **Custom API Endpoint** (`/tts`) exposing all Dia generation parameters (now includes `seed`, `split_text`, `chunk_size`, `transcript`).
+    *   🤖 **OpenAI-Compatible API Endpoints**:
+        *   `/v1/audio/speech` for TTS (includes `seed`).
+        *   `/v1/audio/transcriptions` for STT.
+    *   ⚙️ **Custom API Endpoints**:
+        *   `/tts` exposing all Dia generation parameters (includes `seed`, `split_text`, `chunk_size`, `transcript`).
+        *   `/stt` exposing all Whisper transcription parameters.
     *   📄 Interactive API documentation via Swagger UI (`/docs`).
     *   🩺 Health check endpoint (`/health`).
 *   **Advanced Generation Features:**
     *   📚 **Large Text Handling:** Intelligently splits long inputs into chunks based on sentences and speaker tags, generates audio for each, and concatenates the results seamlessly. Configurable via `split_text` and `chunk_size`.
     *   🎤 **Predefined Voices:** Select from 43 curated, ready-to-use synthetic voices in the `./voices` directory for consistent output without cloning setup.
-    *   ✨ **Improved Voice Cloning:** Robust pipeline with automatic audio processing and transcript handling (local `.txt` or Whisper fallback). Backend handles transcript prepending.
+    *   🎤 **Voice Cloning:** Robust pipeline with automatic audio processing and transcript handling (local `.txt` or integrated Whisper transcription). Backend handles transcript prepending.
     *   🌱 **Consistent Generation:** Use Predefined Voices or Voice Cloning modes, optionally with a fixed integer **Seed**, for consistent voice output across chunks or multiple requests.
     *   🔇 **Audio Post-Processing:** Automatic steps to trim silence, fix internal pauses, and remove long unvoiced segments/artifacts.
 *   **Intuitive Web User Interface:**
@@ -109,22 +67,27 @@ This version introduces significant improvements and new features:
     *   🌓 **Light/Dark Mode:** Toggle between themes with preference saved locally.
     *   🔊 **Audio Player:** Integrated waveform player ([WaveSurfer.js](https://wavesurfer.xyz/)) for generated audio with download option.
     *   ⏳ **Loading Indicator:** Shows status, including chunk processing information.
+    *   🎤 **Transcription Interface:** Upload audio files for transcription directly in the UI.
+    *   🌎 **Language Selection:** Choose target language for transcription or use auto-detection.
 *   **Flexible & Efficient Model Handling:**
-    *   ☁️ Downloads models automatically from [Hugging Face Hub](https://huggingface.co/).
+    *   ☁️ Fast models downloads with [Hugging Face](https://huggingface.co/)'s hf-transfer.
     *   🔒 Supports loading secure **`.safetensors`** weights (default).
     *   💾 Supports loading original **`.pth`** weights.
     *   🚀 Defaults to **BF16 SafeTensors** for reduced memory footprint (~half size) and potentially faster inference. (Credit: [ttj/dia-1.6b-safetensors](https://huggingface.co/ttj/dia-1.6b-safetensors))
     *   🔄 Easily switch between model formats/versions via `config.yaml`.
 *   **Performance & Configuration:**
-    *   💻 **GPU Acceleration:** Automatically uses NVIDIA CUDA if available, falls back to CPU. Optimized VRAM usage (~7GB typical).
+*   💻 **GPU Acceleration:** Automatically uses NVIDIA CUDA if available, falls back to CPU. Optimized VRAM usage (~7GB typical for TTS, varies by Whisper model size for STT).
     *   📊 **Terminal Progress:** Displays `tqdm` progress bar when processing text chunks.
-    *   ⚙️ Primary configuration via `config.yaml`, initial seeding via `.env`.
+    *   ⚙️ Primary configuration via `config.yaml`
     *   📦 Uses standard Python virtual environments.
-*   **Docker Support:**
-    *   🐳 Containerized deployment via [Docker](https://www.docker.com/) and Docker Compose.
-    *   🔌 NVIDIA GPU acceleration with Container Toolkit integration.
-    *   💾 Persistent volumes for models, reference audio, predefined voices, outputs, and config.
-    *   🚀 One-command setup and deployment (`docker compose up -d`).
+    *   **Docker Support:**
+        *   🐳 Containerized deployment via [Docker](https://www.docker.com/) and Docker Compose.
+        *   🔌 NVIDIA GPU acceleration with Container Toolkit integration.
+        *   🧩 Multiple image variants available:
+            * Default `latest` tag with CUDA development libraries for complete functionality incl. `torch.compile`
+            * Lightweight `slim` tag with runtime-only dependencies for reduced image size
+        *   💾 Persistent volumes for models, reference audio, predefined voices, outputs, and config.
+        *   🚀 One-command setup and deployment (`docker compose up -d`).
 
 ## 🔩 System Prerequisites
 
@@ -137,93 +100,28 @@ This version introduces significant improvements and new features:
     *   **NVIDIA Drivers:** Latest version for your GPU/OS ([Download](https://www.nvidia.com/Download/index.aspx)).
     *   **CUDA Toolkit:** Compatible version (e.g., 11.8, 12.1) matching the PyTorch build you install.
 *   **(Linux Only):**
+    *   **NVIDIA CDI:** NVIDIA Container Device Interface enabled for docker runtime
+
     *   `libsndfile1`: Audio library needed by `soundfile`. Install via package manager (e.g., `sudo apt install libsndfile1`).
     *   `ffmpeg`: Required by `openai-whisper`. Install via package manager (e.g., `sudo apt install ffmpeg`).
 
 ## 💻 Installation and Setup
 
-Follow these steps carefully to get the server running.
-
-**1. Clone the Repository**
 ```bash
 git clone https://github.com/devnen/speech-io-server.git
 cd speech-io-server
+docker compose pull
 ```
-
-**2. Set up Python Virtual Environment**
-
-Using a virtual environment is crucial!
-
-*   **Windows (PowerShell):**
-    ```powershell
-    # In the speech-io-server directory
-    python -m venv venv
-    .\venv\Scripts\activate
-    # Your prompt should now start with (venv)
-    ```
-
-*   **Linux (Bash - Debian/Ubuntu Example):**
-    ```bash
-    # Ensure prerequisites are installed
-    sudo apt update && sudo apt install python3 python3-venv python3-pip libsndfile1 ffmpeg -y
-
-    # In the speech-io-server directory
-    python3 -m venv venv
-    source venv/bin/activate
-    # Your prompt should now start with (venv)
-    ```
-
-**3. Install Dependencies**
-
-Make sure your virtual environment is activated (`(venv)` prefix visible).
-
-```bash
-# Upgrade pip (recommended)
-pip install --upgrade pip
-
-# Install project requirements (includes tqdm, yaml, parselmouth etc.)
-pip install -r requirements.txt
-```
-⭐ **Note:** This installation includes large libraries like PyTorch. The download and installation process may take some time depending on your internet speed and system performance.
-
-⭐ **Important:** This installs the *CPU-only* version of PyTorch by default. If you have an NVIDIA GPU, proceed to Step 4 **before** running the server for GPU acceleration.
-
-**4. NVIDIA Driver and CUDA Setup (for GPU Acceleration)**
-
-Skip this step if you only have a CPU.
-
-*   **Step 4a: Check/Install NVIDIA Drivers**
-    *   Run `nvidia-smi` in your terminal/command prompt.
-    *   If it works, note the **CUDA Version** listed (e.g., 12.1, 11.8). This is the *maximum* your driver supports.
-    *   If it fails, download and install the latest drivers from [NVIDIA Driver Downloads](https://www.nvidia.com/Download/index.aspx) and **reboot**. Verify with `nvidia-smi` again.
-
-*   **Step 4b: Install PyTorch with CUDA Support**
-    *   Go to the [Official PyTorch Website](https://pytorch.org/get-started/locally/).
-    *   Use the configuration tool: Select **Stable**, **Windows/Linux**, **Pip**, **Python**, and the **CUDA version** that is **equal to or lower** than the one shown by `nvidia-smi` (e.g., if `nvidia-smi` shows 12.4, choose CUDA 12.1).
-    *   Copy the generated command (it will include `--index-url https://download.pytorch.org/whl/cuXXX`).
-    *   **In your activated `(venv)`:**
-        ```bash
-        # Uninstall the CPU version first!
-        pip uninstall torch torchvision torchaudio -y
-
-        # Paste and run the command copied from the PyTorch website
-        # Example (replace with your actual command):
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-        ```
-
-*   **Step 4c: Verify PyTorch CUDA Installation**
-    *   In your activated `(venv)`, run `python` and execute the following single line:
-        ```python
-        import torch; print(f"PyTorch version: {torch.__version__}"); print(f"CUDA available: {torch.cuda.is_available()}"); print(f"Device name: {torch.cuda.get_device_name(0)}") if torch.cuda.is_available() else None; exit()
-        ```
-    *   If `CUDA available:` shows `True`, the setup was successful. If `False`, double-check driver installation and the PyTorch install command.
 
 ## ⚙️ Configuration
+
+```bash
+cp config.example.yaml app/config.yaml
+```
 
 The server now primarily uses `config.yaml` for runtime configuration.
 
 *   **`config.yaml`:** Located in the project root. This file stores all server settings, model paths, generation defaults, and UI state. It is created automatically on the first run if it doesn't exist. **This is the main file to edit for persistent configuration changes.**
-*   **`.env` File:** Used **only** for the *initial creation* of `config.yaml` if it's missing, or when using the "Reset All Settings" button in the UI. Values in `.env` override hardcoded defaults during this initial seeding/reset process. It is **not** read during normal server operation once `config.yaml` exists.
 *   **UI Configuration:** The "Server Configuration" and "Generation Parameters" sections in the Web UI allow direct editing and saving of values *into* `config.yaml`.
 
 **Key Configuration Areas (in `config.yaml` or UI):**
@@ -237,55 +135,21 @@ The server now primarily uses `config.yaml` for runtime configuration.
 ⭐ **Remember:** Changes made to `server`, `model`, or `paths` sections in `config.yaml` (or via the UI) **require a server restart** to take effect. Changes to `generation_defaults` or `ui_state` are applied dynamically or on the next page load.
 
 ## ▶️ Running the Server
+```bash
+docker compose up -d
+docker compose logs -f
+```
 
 **Note on Model Downloads:**
 The first time you run the server (or after changing model settings in `config.yaml`), it will download the required Dia and Whisper model files (~3-7GB depending on selection). Monitor the terminal logs for progress. The server starts fully *after* downloads complete.
 
-1.  **Activate the virtual environment (if not activated):**
-    *   Linux/macOS: `source venv/bin/activate`
-    *   Windows: `.\venv\Scripts\activate`
-2.  **Run the server:**
-    ```bash
-    python server.py
-    ```
-3.  **Access the UI:** The server should automatically attempt to open the Web UI in your default browser after startup. If it doesn't for any reason, manually navigate to `http://localhost:PORT` (e.g., `http://localhost:8003`).
-4.  **Access API Docs:** Open `http://localhost:PORT/docs`.
-5.  **Stop the server:** Press `CTRL+C` in the terminal.
-
-## 🐳 Docker Installation
-
-Run Dia TTS Server easily using Docker.
-
-### Prerequisites
-
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-- (Optional) NVIDIA GPU with [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) for GPU acceleration.
-
-### Quick Start with Docker
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/l4b4r4b4b4/speech-io-server.git
-    cd speech-io-server
-    ```
-2.  **(Optional) Initial Configuration via `.env`:** If `config.yaml` doesn't exist yet, you can create a `.env` file (e.g., `cp env.example.txt .env`) to seed the initial `config.yaml` when the container starts. Otherwise, defaults will be used.
-3.  **Build and start the container:**
-    ```bash
-    docker compose up -d --build
-    ```
-    The `--build` flag ensures the image is built with the latest code and dependencies. `-d` runs in the background.
-4.  **Access the UI:**
-    Open `http://localhost:8003` (or your configured port).
-5.  **View logs:**
-    ```bash
-    docker compose logs -f
-    ```
-6.  **Stop the container:**
+1.  **Access the UI:** The server should automatically attempt to open the Web UI in your default browser after startup. If it doesn't for any reason, manually navigate to `http://localhost:PORT` (e.g., `http://localhost:8003`).
+2.  **Access API Docs:** Open `http://localhost:PORT/docs`.
+3.  **Stop the server:**
     ```bash
     docker compose down
     ```
-7.  **Configuration Note:** Once running, configuration changes should ideally be made by editing the `config.yaml` file within the container (e.g., using `docker compose exec speech-io-server nano /app/config.yaml`) or via the UI, rather than relying on the `.env` file (unless resetting).
+
 
 ### Docker Volumes
 
@@ -320,13 +184,15 @@ The most intuitive way to use the server:
 
 ### API Endpoints (`/docs` for details)
 
-*   **`/v1/audio/speech` (POST):** OpenAI-compatible.
+#### Text-to-Speech Endpoints
+
+*   **`/v1/audio/speech` (POST):** OpenAI-compatible TTS endpoint.
     *   `input`: Text.
     *   `voice`: 'S1', 'S2', 'dialogue', 'predefined_voice_filename.wav', or 'reference_filename.wav'.
     *   `response_format`: 'opus' or 'wav'.
     *   `speed`: Playback speed factor (0.5-2.0).
     *   `seed`: (Optional) Integer seed, -1 for random.
-*   **`/tts` (POST):** Custom endpoint with full control.
+*   **`/tts` (POST):** Custom TTS endpoint with full control.
     *   `text`: Target text.
     *   `voice_mode`: 'dialogue', 'single_s1', 'single_s2', 'clone', 'predefined'.
     *   `clone_reference_filename`: Filename in `./reference_audio` (for clone) or `./voices` (for predefined).
@@ -338,6 +204,24 @@ The most intuitive way to use the server:
     *   `seed`: (Optional) Integer seed, -1 for random.
     *   `split_text`: (Optional) Boolean, enable/disable chunking (default: True).
     *   `chunk_size`: (Optional) Integer, target chunk size (default: 120).
+
+#### Speech-to-Text Endpoints
+
+*   **`/v1/audio/transcriptions` (POST):** OpenAI-compatible transcription endpoint.
+    *   `file`: Audio file (multipart/form-data).
+    *   `model`: Whisper model name (e.g., 'whisper-1', maps to configured model).
+    *   `language`: (Optional) ISO language code (e.g., 'en', 'fr').
+    *   `prompt`: (Optional) Text to guide the transcription.
+    *   `response_format`: (Optional) 'json' or 'text' (default: 'json').
+    *   `temperature`: (Optional) Sampling temperature (0.0-1.0).
+*   **`/stt` (POST):** Custom STT endpoint with extended control.
+    *   `file`: Audio file (multipart/form-data).
+    *   `model_size`: (Optional) Whisper model size ('tiny', 'base', 'small', 'medium', 'large').
+    *   `language`: (Optional) ISO language code or 'auto' for detection.
+    *   `prompt`: (Optional) Text to guide the transcription.
+    *   `include_timestamps`: (Optional) Boolean to include word timestamps.
+    *   `temperature`: (Optional) Sampling temperature (0.0-1.0).
+    *   `initial_prompt`: (Optional) Text to prepend to the audio.
 
 ## 🔍 Troubleshooting
 
@@ -409,12 +293,61 @@ You can find it here: [https://opensource.org/licenses/MIT](https://opensource.o
 
 ---
 
+## How to Use Speech-to-Text
+
+The Speech-to-Text functionality is available through both the API and the Web UI:
+
+### STT via API
+
+1. **OpenAI-Compatible Endpoint (`/v1/audio/transcriptions`):**
+   ```bash
+   curl -X POST http://localhost:8003/v1/audio/transcriptions \
+     -H "Content-Type: multipart/form-data" \
+     -F file=@/path/to/audio.mp3 \
+     -F model=whisper-1 \
+     -F language=en
+   ```
+
+2. **Custom Endpoint (`/stt`):**
+   ```bash
+   curl -X POST http://localhost:8003/stt \
+     -H "Content-Type: multipart/form-data" \
+     -F file=@/path/to/audio.mp3 \
+     -F model_size=small \
+     -F language=auto \
+     -F include_timestamps=true
+   ```
+
+### STT via Web UI
+
+1. Navigate to the Transcription tab in the Web UI
+2. Upload your audio file using the file selector or drag-and-drop
+3. Select model size and language (optional)
+4. Click "Transcribe"
+5. View the results and download as needed
+
+### STT Configuration
+
+Configure STT behavior in `config.yaml`:
+```yaml
+model:
+  whisper_model_name: "small"  # Options: tiny, base, small, medium, large
+
+stt_defaults:
+  language: "auto"
+  include_timestamps: false
+  temperature: 0.0
+```
+
 ## Todos:
 - Dockerfile optimisation
   - Bump CUDA versions
   - Use runtime instead of devel build
-  - at multi-stage build
+  - add multi-stage build
 - Model compile optimization
-- Add STT endpoints with already included whisper model
 - k8s deployment, hpa, helm chart
 - auto config at startup
+- Add Web UI for STT functionality
+- Batch processing for STT
+- Streaming API for real-time STT
+- Support for additional STT models

@@ -37,7 +37,16 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') || github.ref == format('refs/heads/{0}', 'master') }}
             type=sha,format=short
 
-      - name: Build and push Docker image
+      - name: Extract metadata for Docker (slim)
+        id: meta-slim
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/speech-io-server
+          tags: |
+            type=raw,value=slim,enable=${{ github.ref == format('refs/heads/{0}', 'main') || github.ref == format('refs/heads/{0}', 'master') }}
+            type=sha,format=short,suffix=-slim
+
+      - name: Build and push default Docker image (devel)
         uses: docker/build-push-action@v5
         with:
           context: ./app
@@ -45,5 +54,18 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push slim Docker image (runtime)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app
+          file: .devops/docker/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-slim.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            CUDA_VARIANT=runtime
           cache-from: type=gha
           cache-to: type=gha,mode=max
