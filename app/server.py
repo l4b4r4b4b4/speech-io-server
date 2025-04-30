@@ -1,42 +1,33 @@
 # server.py
 # Main FastAPI server for Dia TTS
 
-import sys
 import logging
 import time
 import os
 import io
-import uuid
-import shutil
 import yaml  # Keep yaml import for potential future use, though config handles it now
 from datetime import datetime
 from contextlib import asynccontextmanager
-from typing import Optional, Literal, List, Dict, Any
+from typing import Optional, Literal, List
 import webbrowser
 import threading
-import time
 
 from fastapi import (
     FastAPI,
     HTTPException,
     Request,
-    Response,
     Form,
     UploadFile,
     File,
-    BackgroundTasks,
-    Depends,  # Added Depends for potential future use
 )
 from fastapi.responses import (
     StreamingResponse,
     JSONResponse,
     HTMLResponse,
-    RedirectResponse,
 )
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import uvicorn
-import numpy as np
 
 # Internal imports
 from config import (
@@ -687,9 +678,9 @@ async def get_web_ui(request: Request):
             logger.warning(predefined_voices_error)
             # Ensure UI state reflects this if default was 'predefined'
             if full_config.get("ui_state", {}).get("last_voice_mode") == "predefined":
-                full_config.setdefault("ui_state", {})[
-                    "last_voice_mode"
-                ] = "dialogue"  # Fallback mode
+                full_config.setdefault("ui_state", {})["last_voice_mode"] = (
+                    "dialogue"  # Fallback mode
+                )
                 full_config.setdefault("ui_state", {})["last_predefined_voice"] = None
 
         # Load presets from file

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: speech-io-server
-      image: nextboss/speech-io-server
+      image: ghcr.io/l4b4r4b4b4/speech-io-server
         ports:
         - containerPort: 8003
           name: http
