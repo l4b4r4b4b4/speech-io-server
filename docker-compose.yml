@@ -8,22 +8,15 @@ services:
       - 8003:8003
     volumes:
       - model_cache:/app/model_cache
-      - ./app/reference_audio:/app/reference_audio
-      - ./app/outputs:/app/outputs
-      - ./app/voices:/app/voices
-      - ./app/config.yaml:/app/config.yaml
+      - ./assets/reference_audio:/app/reference_audio
+      - ./assets/outputs:/app/outputs:rw
+      - ./assets/voices:/app/voices
+      - ./assets/config.yaml:/app/config.yaml
     devices:
       - nvidia.com/gpu=all
     device_cgroup_rules:
       - "c 195:* rmw"
       - "c 236:* rmw"
-    # deploy: thhis is considered legacy, same as setting `runtime: nvidia`
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
     restart: unless-stopped
     environment:
       - NVIDIA_VISIBLE_DEVICES=all

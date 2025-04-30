@@ -11,6 +11,22 @@ docker compose up -d
 docker compose logs -f
 ```
 
+## Todos:
+- [ ] Dockerfile optimisation
+  - [ ] Bump CUDA versions
+  - [ ] Use runtime instead of devel build
+  - [ ] add multi-stage build
+- [ ] Model compile optimization as config
+- [ ] k8s deployment,
+  - [ ] hpa,
+  - [ ] helm chart
+  --> Refactor for file with internal / external S3 storage support (minio)
+- [ ] auto config at startup
+- [ ] Add Web UI for STT functionality
+- [ ] Batch processing for STT
+- [ ] Streaming API for real-time STT
+- [ ] Support for additional STT models
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 [![Python Version](https://img.shields.io/badge/Python-3.10+-blue.svg?style=for-the-badge)](https://www.python.org/downloads/)
 [![Framework](https://img.shields.io/badge/Framework-FastAPI-green.svg?style=for-the-badge)](https://fastapi.tiangolo.com/)
@@ -80,8 +96,8 @@ docker compose logs -f
     *   📊 **Terminal Progress:** Displays `tqdm` progress bar when processing text chunks.
     *   ⚙️ Primary configuration via `config.yaml`
     *   📦 Uses standard Python virtual environments.
-    *   **Docker Support:**
-        *   🐳 Containerized deployment via [Docker](https://www.docker.com/) and Docker Compose.
+    *   **Cloud-Native:**
+        *   🐳 Containerized deployment via [Docker](https://www.docker.com/), [Docker Compose](./docker-compose.yml), [k8s deployment](./devops/k8s/deployment.yaml), [Horizontal Pod Autoscaler (HPA)](./devops/k8s/hpa.yaml) and [helm chart](./devops/helm/chart.yaml).
         *   🔌 NVIDIA GPU acceleration with Container Toolkit integration.
         *   🧩 Multiple image variants available:
             * Default `latest` tag with CUDA development libraries for complete functionality incl. `torch.compile`
@@ -338,16 +354,3 @@ stt_defaults:
   include_timestamps: false
   temperature: 0.0
 ```
-
-## Todos:
-- Dockerfile optimisation
-  - Bump CUDA versions
-  - Use runtime instead of devel build
-  - add multi-stage build
-- Model compile optimization
-- k8s deployment, hpa, helm chart
-- auto config at startup
-- Add Web UI for STT functionality
-- Batch processing for STT
-- Streaming API for real-time STT
-- Support for additional STT models
