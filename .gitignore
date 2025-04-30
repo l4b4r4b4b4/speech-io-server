@@ -8,6 +8,7 @@ __pycache__/
 outputs
 reference_audio
 .env
+config.yaml
 # Ignore development tools
 .vscode/
 .venv
