@@ -6,14 +6,7 @@ __pycache__/
 .dist
 .idea
 outputs
-# Ignore new files in reference_audio, but keep tracking existing ones
-reference_audio/*
-!reference_audio/Gianna.txt
-!reference_audio/Gianna.wav
-!reference_audio/Oliver_Luna.txt
-!reference_audio/Oliver_Luna.wav
-!reference_audio/Robert.txt
-!reference_audio/Robert.wav
+
 .env
 config.yam
 # Ignore development tools
