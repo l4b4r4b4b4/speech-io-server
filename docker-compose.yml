@@ -11,7 +11,7 @@ services:
       - ./app/reference_audio:/app/reference_audio
       - ./app/outputs:/app/outputs
       - ./app/voices:/app/voices
-      - ./app/config.yaml:/app/config.yaml:rw
+      - ./app/config.yaml:/app/config.yaml
     devices:
       - nvidia.com/gpu=all
     device_cgroup_rules:

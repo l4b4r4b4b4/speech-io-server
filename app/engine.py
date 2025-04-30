@@ -793,7 +793,7 @@ def generate_speech(
                     top_p=top_p,
                     cfg_filter_top_k=cfg_filter_top_k,
                     # max_tokens=max_tokens, # model.generate might not support this limit directly
-                    use_torch_compile=False,  # Set as needed, False for simplicity
+                    use_torch_compile=True,  # Set as needed, False for simplicity
                     verbose=True,  # Set verbose=True for detailed logs from model.generate per chunk
                     text_to_generate_size=len(chunk),
                     seed=seed,

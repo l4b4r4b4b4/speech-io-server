@@ -22,8 +22,8 @@ generation_defaults:
   chunk_size: 120
 ui_state:
   last_text: Hey, how's it going?
-  last_voice_mode: dialogue
-  last_predefined_voice: none
+  last_voice_mode: predefined
+  last_predefined_voice: Alice.wav
   last_reference_file: none
   last_seed: 42
   last_chunk_size: 120
