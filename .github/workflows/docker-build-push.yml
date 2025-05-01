@@ -18,8 +18,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Free disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          
+          echo "Removing unnecessary large directories..."
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache
+          
+          echo "Disk space after cleanup:"
+          df -h
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:latest
+            network=host
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -56,6 +74,14 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          provenance: false
+          outputs: type=registry,compression=zstd
+          
+      - name: Clean Docker build cache
+        run: |
+          docker builder prune -af
+          df -h
 
       - name: Build and push slim Docker image (runtime)
         uses: docker/build-push-action@v5
@@ -69,3 +95,6 @@ jobs:
             CUDA_VARIANT=runtime
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          provenance: false
+          outputs: type=registry,compression=zstd
