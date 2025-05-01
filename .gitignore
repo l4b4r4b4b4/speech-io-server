@@ -8,7 +8,7 @@ __pycache__/
 outputs
 model_cache
 .env
-config.yam
+
 # Ignore development tools
 .vscode/
 .venv

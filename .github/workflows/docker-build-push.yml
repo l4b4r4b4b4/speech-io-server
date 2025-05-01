@@ -3,8 +3,14 @@ name: Build and Push Docker Image to GHCR
 on:
   push:
     branches: [main]
+    paths:
+      - 'app/**'
+      - '.devops/docker/Dockerfile'
   pull_request:
     branches: [main]
+    paths:
+      - 'app/**'
+      - '.devops/docker/Dockerfile'
   workflow_dispatch:
 
 jobs:

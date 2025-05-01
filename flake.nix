@@ -141,6 +141,7 @@
           echo ""
           echo "Available commands:"
           echo "  setup_environment     - Set up Python venv and install dependencies"
+          echo "  start_speech_io_server     - Start local speech IO server"
           echo ""
         '';
 
@@ -179,6 +180,24 @@
             deno jupyter --install
             echo "Python environment setup complete!"
           }
+
+          # Start speech-io-server
+          start_speech_io_server() {
+            echo "Starting speech-io-server..."
+            # Save current directory
+            local original_dir=$(pwd)
+
+            cd app
+            # Run the server in a trap that restores the directory when interrupted or finished
+            trap 'cd "$original_dir"; echo "Returned to $original_dir"; trap - INT TERM EXIT' INT TERM EXIT
+
+            echo "Press Ctrl+C to stop the server"
+            python -m server
+
+            # This line will execute if the server exits normally
+            echo "Server stopped"
+          }
+
 
           # Create diagnostics script if it doesn't exist
           if [ ! -d "$PLATFORM_ROOT/scripts" ]; then
@@ -229,7 +248,7 @@
 
           # Export the functions
           export -f setup_environment
-          export -f start_development
+          export -f start_speech_io_serve
 
           # Auto-run environment setup
           setup_environment
@@ -237,9 +256,6 @@
           # Run the diagnostics script
           echo "Running CUDA diagnostics..."
           python $PLATFORM_ROOT/scripts/cuda_diagnostics.py
-
-          # Check if K3s is available, just for information
-          check_k3s || echo "K3s access not configured. You may need to install it or fix configuration."
 
           # With this:
           echo ""
@@ -249,6 +265,7 @@
           echo ""
           echo "To set up Kubernetes services, you can now run:"
           echo "  setup_environment     - Set up Python venv and install dependencies"
+          echo "  start_speech_io_server     - Start local speech IO server"
           echo ""
           echo ""
           # Start an interactive shell
