@@ -1,5 +1,5 @@
 {
-  description = "Development environment for sovereign AI solutions";
+  description = "Development environment for speech-io-server";
 
   # Flake inputs
   inputs = {
@@ -77,7 +77,6 @@
             python311
             git
             git-lfs
-            runpodctl
             deno
             nvtopPackages.full
             btop
@@ -87,27 +86,11 @@
             cudatoolkit
             cudnn
 
-            # JavaScript/TypeScript
-            bun
-            nodejs_20
-            nodePackages.typescript
-            nodePackages.typescript-language-server
-            nodePackages.prettier
-            nodePackages.eslint
-            nodePackages.npm
-
             # Development tools
             gh
             gnumake
             curl
             openssl
-
-            # K8s tools
-            kubernetes-helm
-            kubectl
-            sops
-            age
-            gnupg
 
             # System libraries
             gcc
@@ -117,32 +100,15 @@
             zlib
             zlib.dev
 
-            # Network tools (helpful for K3s access)
-            iproute2
-            nettools
-            which
-            sudo
+            # Multimedia libraries
+            ffmpeg-full
+            libsndfile
+            # Additional audio processing dependencies
+            alsa-lib
+            portaudio
+            pulseaudioFull
           ]
           ++ pythonPkgs);
-
-        # Add direct bind mounts for K3s access only
-        extraBwrapArgs = [
-          "--ro-bind"
-          "/etc/rancher"
-          "/etc/rancher"
-          "--ro-bind"
-          "/run/k3s"
-          "/run/k3s"
-          "--ro-bind"
-          "/var/lib/rancher"
-          "/var/lib/rancher"
-        ];
-
-        # Create necessary directories during build
-        extraBuildCommands = ''
-          mkdir -p root/.kube
-          mkdir -p root/.config/sops/age
-        '';
 
         profile = ''
           echo "Operating System environment."
@@ -171,51 +137,10 @@
           export PYTHONPATH=""
           export VIRTUAL_ENV_DISABLE_PROMPT=1
 
-          # Set KUBECONFIG to use the K3s configuration
-          if [ -f "/etc/rancher/k3s/k3s.yaml" ]; then
-            # Copy the config to user-accessible location if needed
-            mkdir -p $HOME/.kube
-            cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
-            chmod 600 $HOME/.kube/config
-
-            # Update server address to work within the FHS environment
-            HOST_IP=$(ip route get 1 | awk '{print $7;exit}')
-            sed -i "s/127.0.0.1/$HOST_IP/g" $HOME/.kube/config
-            sed -i "s/localhost/$HOST_IP/g" $HOME/.kube/config
-
-            export KUBECONFIG=$HOME/.kube/config
-            echo "K3s configuration available at $KUBECONFIG"
-          else
-            # Try alternative locations
-            if [ -f "$HOME/.kube/config" ]; then
-              export KUBECONFIG=$HOME/.kube/config
-              echo "Using existing kubeconfig at $KUBECONFIG"
-            elif [ -f "/run/k3s/kubeconfig" ]; then
-              mkdir -p $HOME/.kube
-              cp /run/k3s/kubeconfig $HOME/.kube/config
-              chmod 600 $HOME/.kube/config
-              export KUBECONFIG=$HOME/.kube/config
-              echo "Using k3s config from /run/k3s/kubeconfig"
-            fi
-          fi
-
           echo "=== Sovereign AI Development Environment ==="
           echo ""
           echo "Available commands:"
-          echo "  setup_environment     - Set up bun mono repo, Python venv and install dependencies"
-          echo "  start_development     - Start development tools"
-          echo "  check_k3s             - Check if K3s is running"
-          echo "  setup_rancher         - Install Rancher on K3s"
-          echo "  cleanup_rancher       - Remove Rancher installation completely"
-          echo "  install_langfuse      - Install Langfuse using values from secrets"
-          echo "  forward_langfuse      - Set up port forwarding for Langfuse UI"
-          echo "  setup_sops            - Generate SOPS keys for secret management"
-          echo "  encrypt_secrets       - Encrypt Kubernetes secrets using SOPS"
-          echo "  decrypt_secrets       - Decrypt Kubernetes secrets using SOPS"
-          echo "  install_dev_environment - Set up local development environment in K8s"
-          echo "  forward_dev_services  - Set up port forwarding for all development services"
-          echo "  install_supabase      - Install Supabase in the development environment"
-          echo "  get_secret            - Extract a value from SOPS-encrypted secrets"
+          echo "  setup_environment     - Set up Python venv and install dependencies"
           echo ""
         '';
 
@@ -255,20 +180,6 @@
             echo "Python environment setup complete!"
           }
 
-          # Function to start dev tools
-          start_development() {
-            if [ "$1" == "editor" ] || [ "$1" == "all" ]; then
-              echo "Starting Zed editor..."
-              zeditor . &
-            fi
-
-            if [ "$1" == "tests" ] || [ "$1" == "all" ]; then
-              if [ -f "package.json" ]; then
-                echo "Starting bun test:watch..."
-                bun test:watch
-              fi
-            fi
-          }
           # Create diagnostics script if it doesn't exist
           if [ ! -d "$PLATFORM_ROOT/scripts" ]; then
             mkdir -p "$PLATFORM_ROOT/scripts"
@@ -334,11 +245,10 @@
           echo ""
           echo "FHS environment is now fully initialized and ready!"
           echo "To launch Zed Editor in this environment, run:"
-          echo "  start_development editor"
+          echo "  zeditor ."
           echo ""
           echo "To set up Kubernetes services, you can now run:"
           echo "  setup_environment     - Set up Python venv and install dependencies"
-          echo "  start_development     - Start development k8s stack"
           echo ""
           echo ""
           # Start an interactive shell
