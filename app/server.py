@@ -39,20 +39,17 @@ from config import (
     get_model_cache_path,
     get_predefined_voices_path,
     get_model_repo_id,
-    get_model_config_filename,
+    get_use_torch_compile,
     get_model_weights_filename,
     get_whisper_model_name,
     # Generation default getters (still useful for API defaults)
-    get_gen_default_speed_factor,
     get_gen_default_cfg_scale,
     get_gen_default_temperature,
     get_gen_default_top_p,
     get_gen_default_cfg_filter_top_k,
-    get_gen_default_seed,
     get_gen_default_split_text,
     get_gen_default_chunk_size,
     CONFIG_FILE_PATH,
-    ENV_FILE_PATH,
 )
 
 # Import updated request models
@@ -1240,11 +1237,7 @@ if __name__ == "__main__":
     logger.info(
         f"Configuration will be read from/written to: {os.path.abspath(CONFIG_FILE_PATH)}"
     )
-    if not os.path.exists(CONFIG_FILE_PATH) and ENV_FILE_PATH:
-        logger.info(
-            f"'{CONFIG_FILE_PATH}' not found. Will attempt initial seeding from: {ENV_FILE_PATH}"
-        )
-    elif not os.path.exists(CONFIG_FILE_PATH):
+    if not os.path.exists(CONFIG_FILE_PATH):
         logger.info(f"'{CONFIG_FILE_PATH}' not found. Will create using defaults.")
 
     # Log key settings read from config
@@ -1255,6 +1248,7 @@ if __name__ == "__main__":
     logger.info(f"Predefined Voices Path: {get_predefined_voices_path()}")
     logger.info(f"Output Path: {get_output_path()}")
     logger.info(f"Whisper Model: {get_whisper_model_name()}")
+    logger.info(f"Use Torch Compile: {get_use_torch_compile()}")
 
     display_host = "localhost" if host == "0.0.0.0" else host
     logger.info(f"Web UI will be available at http://{display_host}:{port}/")

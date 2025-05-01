@@ -6,6 +6,7 @@ model:
   config_filename: config.json
   weights_filename: dia-v0_1_bf16.safetensors
   whisper_model_name: large
+  use_torch_compile: false
 paths:
   model_cache: ./model_cache
   reference_audio: ./reference_audio
@@ -21,9 +22,9 @@ generation_defaults:
   split_text: true
   chunk_size: 120
 ui_state:
-  last_text: '[S1] This is a test of the text to speech system.
+  last_text: "[S1] This is a test of the text to speech system.
 
-    '
+    "
   last_voice_mode: dialogue
   last_predefined_voice: none
   last_reference_file: none

@@ -1,5 +1,6 @@
 volumes:
   model_cache:
+  outputs:
 
 services:
   speech-io-server:
@@ -8,8 +9,9 @@ services:
       - 8003:8003
     volumes:
       - model_cache:/app/model_cache
+      - outputs:/app/outputs
       - ./assets/reference_audio:/app/reference_audio
-      - ./assets/outputs:/app/outputs:rw
+      # - ./assets/outputs:/app/outputs
       - ./assets/voices:/app/voices
       - ./assets/config.yaml:/app/config.yaml
     devices:

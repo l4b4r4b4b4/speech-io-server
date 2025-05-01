@@ -7,17 +7,17 @@ import yaml
 import shutil
 from copy import deepcopy
 from threading import Lock
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional, List
 
 # Use dotenv for initial seeding ONLY if config.yaml is missing
-from dotenv import load_dotenv, find_dotenv
+# from dotenv import load_dotenv, find_dotenv
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
 CONFIG_FILE_PATH = "config.yaml"
-ENV_FILE_PATH = find_dotenv()  # Find .env file location
+# ENV_FILE_PATH = find_dotenv()  # Find .env file location
 
 # --- Default Configuration Structure ---
 # This defines the expected structure and default values for config.yaml
@@ -32,6 +32,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "config_filename": "config.json",
         "weights_filename": "dia-v0_1_bf16.safetensors",
         "whisper_model_name": "small.en",
+        "use_torch_compile": False,
     },
     "paths": {
         "model_cache": "./model_cache",
@@ -60,32 +61,6 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "hide_chunk_warning": False,
         "hide_generation_warning": False,
     },
-}
-
-# Mapping from .env variable names to config.yaml nested keys
-# Used ONLY during initial seeding if config.yaml is missing.
-ENV_TO_YAML_MAP: Dict[str, Tuple[List[str], type]] = {
-    # Server
-    "HOST": (["server", "host"], str),
-    "PORT": (["server", "port"], int),
-    # Model
-    "DIA_MODEL_REPO_ID": (["model", "repo_id"], str),
-    "DIA_MODEL_CONFIG_FILENAME": (["model", "config_filename"], str),
-    "DIA_MODEL_WEIGHTS_FILENAME": (["model", "weights_filename"], str),
-    "WHISPER_MODEL_NAME": (["model", "whisper_model_name"], str),
-    # Paths
-    "DIA_MODEL_CACHE_PATH": (["paths", "model_cache"], str),
-    "REFERENCE_AUDIO_PATH": (["paths", "reference_audio"], str),
-    "OUTPUT_PATH": (["paths", "output"], str),
-    # Generation Defaults
-    "GEN_DEFAULT_SPEED_FACTOR": (["generation_defaults", "speed_factor"], float),
-    "GEN_DEFAULT_CFG_SCALE": (["generation_defaults", "cfg_scale"], float),
-    "GEN_DEFAULT_TEMPERATURE": (["generation_defaults", "temperature"], float),
-    "GEN_DEFAULT_TOP_P": (["generation_defaults", "top_p"], float),
-    "GEN_DEFAULT_CFG_FILTER_TOP_K": (["generation_defaults", "cfg_filter_top_k"], int),
-    "GEN_DEFAULT_SEED": (["generation_defaults", "seed"], int),
-    # Note: split_text and chunk_size defaults are not typically in .env
-    # Note: ui_state is never loaded from .env
 }
 
 
@@ -134,55 +109,55 @@ class YamlConfigManager:
         """Returns a deep copy of the hardcoded default configuration."""
         return deepcopy(DEFAULT_CONFIG)
 
-    def _load_env_overrides(self, config_dict: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Loads .env file (if found) and overrides values in the provided config_dict.
-        Used ONLY during initial seeding or reset.
-        """
-        if not ENV_FILE_PATH:
-            logger.info("No .env file found, skipping environment variable overrides.")
-            return config_dict
+    # def _load_env_overrides(self, config_dict: Dict[str, Any]) -> Dict[str, Any]:
+    #     """
+    #     Loads .env file (if found) and overrides values in the provided config_dict.
+    #     Used ONLY during initial seeding or reset.
+    #     """
+    #     if not ENV_FILE_PATH:
+    #         logger.info("No .env file found, skipping environment variable overrides.")
+    #         return config_dict
 
-        logger.info(f"Loading environment variables from: {ENV_FILE_PATH}")
-        # Load .env variables into os.environ temporarily
-        load_dotenv(dotenv_path=ENV_FILE_PATH, override=True)
+    #     logger.info(f"Loading environment variables from: {ENV_FILE_PATH}")
+    #     # Load .env variables into os.environ temporarily
+    #     load_dotenv(dotenv_path=ENV_FILE_PATH, override=True)
 
-        env_values_applied = 0
-        for env_var, (yaml_path, target_type) in ENV_TO_YAML_MAP.items():
-            env_value_str = os.environ.get(env_var)
-            if env_value_str is not None:
-                try:
-                    # Attempt type conversion
-                    if target_type is bool:
-                        converted_value = env_value_str.lower() in (
-                            "true",
-                            "1",
-                            "t",
-                            "yes",
-                            "y",
-                        )
-                    else:
-                        converted_value = target_type(env_value_str)
+    #     env_values_applied = 0
+    #     for env_var, (yaml_path, target_type) in ENV_TO_YAML_MAP.items():
+    #         env_value_str = os.environ.get(env_var)
+    #         if env_value_str is not None:
+    #             try:
+    #                 # Attempt type conversion
+    #                 if target_type is bool:
+    #                     converted_value = env_value_str.lower() in (
+    #                         "true",
+    #                         "1",
+    #                         "t",
+    #                         "yes",
+    #                         "y",
+    #                     )
+    #                 else:
+    #                     converted_value = target_type(env_value_str)
 
-                    _set_nested_value(config_dict, yaml_path, converted_value)
-                    logger.debug(
-                        f"Applied .env override: {'->'.join(yaml_path)} = {converted_value}"
-                    )
-                    env_values_applied += 1
-                except (ValueError, TypeError) as e:
-                    logger.warning(
-                        f"Could not apply .env override for '{env_var}'. Invalid value '{env_value_str}' for type {target_type.__name__}. Using default. Error: {e}"
-                    )
-            # Clean up the loaded env var from os.environ if desired, though it's usually harmless
-            # if env_var in os.environ:
-            #     del os.environ[env_var]
+    #                 _set_nested_value(config_dict, yaml_path, converted_value)
+    #                 logger.debug(
+    #                     f"Applied .env override: {'->'.join(yaml_path)} = {converted_value}"
+    #                 )
+    #                 env_values_applied += 1
+    #             except (ValueError, TypeError) as e:
+    #                 logger.warning(
+    #                     f"Could not apply .env override for '{env_var}'. Invalid value '{env_value_str}' for type {target_type.__name__}. Using default. Error: {e}"
+    #                 )
+    #         # Clean up the loaded env var from os.environ if desired, though it's usually harmless
+    #         # if env_var in os.environ:
+    #         #     del os.environ[env_var]
 
-        if env_values_applied > 0:
-            logger.info(f"Applied {env_values_applied} overrides from .env file.")
-        else:
-            logger.info("No applicable overrides found in .env file.")
+    #     if env_values_applied > 0:
+    #         logger.info(f"Applied {env_values_applied} overrides from .env file.")
+    #     else:
+    #         logger.info("No applicable overrides found in .env file.")
 
-        return config_dict
+    #     return config_dict
 
     def load_config(self):
         """
@@ -230,20 +205,9 @@ class YamlConfigManager:
                     # Don't try to save if it was an unexpected error
 
             else:
-                logger.info(
-                    f"{CONFIG_FILE_PATH} not found. Creating initial configuration..."
+                logger.error(
+                    f"Failed to save initial configuration to {CONFIG_FILE_PATH}. Using in-memory defaults."
                 )
-                # Seed from .env overrides onto the defaults
-                loaded_config = self._load_env_overrides(loaded_config)
-                # Save the newly created config
-                if self._save_config_yaml_internal(loaded_config):
-                    logger.info(
-                        f"Successfully created and saved initial configuration to {CONFIG_FILE_PATH}."
-                    )
-                else:
-                    logger.error(
-                        f"Failed to save initial configuration to {CONFIG_FILE_PATH}. Using in-memory defaults."
-                    )
 
             self.config = loaded_config
             logger.debug(f"Current config loaded: {self.config}")
@@ -387,9 +351,6 @@ class YamlConfigManager:
                 "Resetting configuration to defaults (with .env overrides)..."
             )
             reset_config = self._load_defaults()
-            reset_config = self._load_env_overrides(
-                reset_config
-            )  # Apply .env overrides to defaults
 
             if self._save_config_yaml_internal(reset_config):
                 self.config = reset_config  # Update in-memory config
@@ -520,6 +481,12 @@ def get_model_repo_id() -> str:
 def get_model_config_filename() -> str:
     return config_manager.get(
         "model.config_filename", _get_default("model.config_filename")
+    )
+
+
+def get_use_torch_compile() -> bool:
+    return config_manager.get_bool(
+        "model.use_torch_compile", _get_default("model.use_torch_compile")
     )
 
 
