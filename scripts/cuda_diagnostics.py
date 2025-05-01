@@ -1,6 +1,4 @@
 import sys
-import subprocess
-import platform
 
 def print_header(title):
     print("\n" + "=" * 40)
@@ -10,8 +8,6 @@ def print_header(title):
 def main():
     print_header("SYSTEM INFORMATION")
     print(f"Python version: {sys.version}")
-    print(f"Platform: {platform.platform()}")
-    print(f"Processor: {platform.processor()}")
 
     try:
         # Check for CUDA with PyTorch
@@ -21,7 +17,7 @@ def main():
             print(f"PyTorch version: {torch.__version__}")
             print(f"CUDA available: {torch.cuda.is_available()}")
             if torch.cuda.is_available():
-                print(f"CUDA version: {torch.version.cuda}")
+                print(f"CUDA version: {torch.version.cuda}") # pyright: ignore
                 print(f"CUDA device count: {torch.cuda.device_count()}")
                 for i in range(torch.cuda.device_count()):
                     print(f"  Device {i}: {torch.cuda.get_device_name(i)}")

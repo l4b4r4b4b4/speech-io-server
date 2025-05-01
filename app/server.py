@@ -124,6 +124,25 @@ async def lifespan(app: FastAPI):
         else:
             logger.info("Dia model loaded successfully.")
             model_loaded_successfully = True
+            if model_loaded_successfully and get_use_torch_compile():
+                logger.info(
+                    "Model loaded, performing warm-up generation to trigger torch.compile..."
+                )
+                try:
+                    # Use a very simple, short text to warm up the model
+                    warmup_text = "This is a test."
+                    _ = engine.generate_speech(
+                        text_to_process=warmup_text,
+                        voice_mode="single_s1",  # Use simplest mode
+                        seed=42,  # Fixed seed for reproducibility
+                    )
+                    logger.info(
+                        "Model warm-up complete. First request should now be faster."
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Model warm-up failed, first request may be slow: {e}"
+                    )
 
             # Create and start a delayed browser opening thread only if model loaded
             host = get_host()

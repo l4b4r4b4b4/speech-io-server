@@ -28,28 +28,28 @@
             config = {
               allowUnfree = true;
               # Disable tests for problematic packages
-              permittedInsecurePackages = [
-                "python3.11-jupyter-server-2.15.0"
-              ];
-              packageOverrides = pkgs: {
-                python311Packages = pkgs.python311Packages.override {
-                  overrides = python-self: python-super: {
-                    # Disable tests for jupyter packages
-                    jupyter-server = python-super.jupyter-server.overridePythonAttrs (old: {
-                      doCheck = false;
-                      doInstallCheck = false;
-                    });
-                    jupyterlab = python-super.jupyterlab.overridePythonAttrs (old: {
-                      doCheck = false;
-                      doInstallCheck = false;
-                    });
-                    jupyter = python-super.jupyter.overridePythonAttrs (old: {
-                      doCheck = false;
-                      doInstallCheck = false;
-                    });
-                  };
-                };
-              };
+              # permittedInsecurePackages = [
+              #   "python3.11-jupyter-server-2.15.0"
+              # ];
+              # packageOverrides = pkgs: {
+              #   python311Packages = pkgs.python311Packages.override {
+              #     overrides = python-self: python-super: {
+              #       # Disable tests for jupyter packages
+              #       jupyter-server = python-super.jupyter-server.overridePythonAttrs (old: {
+              #         doCheck = false;
+              #         doInstallCheck = false;
+              #       });
+              #       jupyterlab = python-super.jupyterlab.overridePythonAttrs (old: {
+              #         doCheck = false;
+              #         doInstallCheck = false;
+              #       });
+              #       jupyter = python-super.jupyter.overridePythonAttrs (old: {
+              #         doCheck = false;
+              #         doInstallCheck = false;
+              #       });
+              #     };
+              #   };
+              # };
             };
           };
         });
@@ -72,8 +72,6 @@
         targetPkgs = pkgs': (with pkgs';
           [
             # Core system tools
-            neofetch
-            lolcat
             python311
             git
             git-lfs
@@ -111,12 +109,6 @@
           ++ pythonPkgs);
 
         profile = ''
-          echo "Operating System environment."
-          neofetch | lolcat
-          # Export BUN_VERSION for Docker builds
-          export BUN_VERSION=$(bun --version)
-          echo "Using Bun version: $BUN_VERSION"
-
           # Set up library paths and environment variables for CUDA
           export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [
             cudatoolkit
@@ -136,13 +128,6 @@
           # Python/virtualenv setup
           export PYTHONPATH=""
           export VIRTUAL_ENV_DISABLE_PROMPT=1
-
-          echo "=== Sovereign AI Development Environment ==="
-          echo ""
-          echo "Available commands:"
-          echo "  setup_environment     - Set up Python venv and install dependencies"
-          echo "  start_speech_io_server     - Start local speech IO server"
-          echo ""
         '';
 
         # This is the script that runs when you start the FHS environment
@@ -164,9 +149,9 @@
             # Upgrade pip and install requirements if needed
             if [ ! -f ".venv/.requirements-installed" ]; then
               echo "Installing Python packages..."
-              python -m pip install --upgrade pip
+              python -m pip install --upgrade pip ipykernel
 
-              # Install from requirements-base.txt
+              # Install from requirements.txt
               python -m pip install -r app/requirements.txt
 
               # Setup Jupyter kernel
@@ -176,13 +161,11 @@
               touch .venv/.requirements-installed
             fi
 
-            # Install deno jupyter
-            deno jupyter --install
             echo "Python environment setup complete!"
           }
 
           # Start speech-io-server
-          start_speech_io_server() {
+          speech_io_server() {
             echo "Starting speech-io-server..."
             # Save current directory
             local original_dir=$(pwd)
@@ -207,8 +190,6 @@
           if [ ! -f "$PLATFORM_ROOT/scripts/cuda_diagnostics.py" ]; then
             cat > "$PLATFORM_ROOT/scripts/cuda_diagnostics.py" << 'EOF'
           import sys
-          import subprocess
-          import platform
 
           def print_header(title):
               print("\n" + "=" * 40)
@@ -218,8 +199,6 @@
           def main():
               print_header("SYSTEM INFORMATION")
               print(f"Python version: {sys.version}")
-              print(f"Platform: {platform.platform()}")
-              print(f"Processor: {platform.processor()}")
 
               try:
                   # Check for CUDA with PyTorch
@@ -229,7 +208,7 @@
                       print(f"PyTorch version: {torch.__version__}")
                       print(f"CUDA available: {torch.cuda.is_available()}")
                       if torch.cuda.is_available():
-                          print(f"CUDA version: {torch.version.cuda}")
+                          print(f"CUDA version: {torch.version.cuda}") # pyright: ignore
                           print(f"CUDA device count: {torch.cuda.device_count()}")
                           for i in range(torch.cuda.device_count()):
                               print(f"  Device {i}: {torch.cuda.get_device_name(i)}")
@@ -248,7 +227,7 @@
 
           # Export the functions
           export -f setup_environment
-          export -f start_speech_io_server
+          export -f speech_io_server
 
           # Auto-run environment setup
           setup_environment
@@ -263,9 +242,12 @@
           echo "To launch Zed Editor in this environment, run:"
           echo "  zeditor ."
           echo ""
+          echo "To see your GPU (CUDA) workloads live:"
+          echo "  nvtop"
+          echo ""
           echo "To set up Kubernetes services, you can now run:"
           echo "  setup_environment     - Set up Python venv and install dependencies"
-          echo "  start_speech_io_server     - Start local speech IO server"
+          echo "  speech_io_server     - Start local speech IO server"
           echo ""
           echo ""
           # Start an interactive shell

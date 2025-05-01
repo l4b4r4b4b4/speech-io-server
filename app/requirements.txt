@@ -2,13 +2,14 @@
 
 # Core Web Framework
 fastapi
-uvicorn[standard]
+uvicorn[standard] # Standard includes WebSockets, HTTP/2 and other extras
+gunicorn # Production WSGI HTTP server to manage Uvicorn workers
 
 # Machine Learning & Audio
 torch
 torchaudio
 numpy
-soundfile # Requires libsndfile system library (e.g., sudo apt-get install libsndfile1 on Debian/Ubuntu)
+soundfile
 huggingface_hub
 descript-audio-codec
 safetensors
@@ -28,3 +29,12 @@ pydub
 praat-parselmouth # For unvoiced segment removal
 PyYAML # For parsing presets.yaml
 hf-transfer
+# Production & Deployment
+uvloop # Ultra fast asyncio event loop (Linux/macOS only)
+httptools # Fast HTTP parsing
+prometheus-client # Metrics export
+python-json-logger # Structured JSON logging
+tenacity # Retry mechanism for external service calls
+sentry-sdk # Error tracking
+python-jose[cryptography] # JWT token handling (if using auth)
+passlib[bcrypt] # Password hashing (if using auth)
