@@ -193,7 +193,7 @@
 
             echo "Press Ctrl+C to stop the server"
             python -m server
-
+            cd ..
             # This line will execute if the server exits normally
             echo "Server stopped"
           }
@@ -248,7 +248,7 @@
 
           # Export the functions
           export -f setup_environment
-          export -f start_speech_io_serve
+          export -f start_speech_io_server
 
           # Auto-run environment setup
           setup_environment

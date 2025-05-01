@@ -6,7 +6,7 @@ model:
   config_filename: config.json
   weights_filename: dia-v0_1_bf16.safetensors
   whisper_model_name: small.en
-  use_torch_compile: false
+  use_torch_compile: true
 paths:
   model_cache: ./model_cache
   reference_audio: ./reference_audio
@@ -22,16 +22,10 @@ generation_defaults:
   split_text: true
   chunk_size: 120
 ui_state:
-  last_text: '[S1] Hey, how''s it going?
-
-    [S2] Pretty good! Just grabbing some coffee. You?
-
-    [S1] Same here. Need the fuel! (laughs)
-
-    '
-  last_voice_mode: dialogue
+  last_text: '[S1] Not just a little bit of cum.'
+  last_voice_mode: clone
   last_predefined_voice: none
-  last_reference_file: none
+  last_reference_file: FBP_snippet.mp3
   last_seed: 42
   last_chunk_size: 120
   last_split_text_enabled: true

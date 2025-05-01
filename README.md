@@ -12,7 +12,8 @@ docker compose logs -f
 ```
 
 ## Todos:
-- [ ] Model compile optimization as config
+- [ ] Clean ARchitecture
+- [ ] OpenAI compatible transcription capabilities
 - [ ] k8s deployment,
   - [ ] hpa,
   - [ ] helm chart

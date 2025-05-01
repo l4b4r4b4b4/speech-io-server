@@ -32,7 +32,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "config_filename": "config.json",
         "weights_filename": "dia-v0_1_bf16.safetensors",
         "whisper_model_name": "small.en",
-        "use_torch_compile": False,
+        "use_torch_compile": True,
     },
     "paths": {
         "model_cache": "./model_cache",

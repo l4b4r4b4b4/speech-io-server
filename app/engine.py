@@ -7,7 +7,7 @@ import os
 import torch
 import torchaudio  # Import torchaudio for loading/processing
 import numpy as np
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Dict, Any  # Added Dict, Any
 from huggingface_hub import hf_hub_download
 from tqdm import tqdm  # Import tqdm for progress bars
 
@@ -89,6 +89,7 @@ from config import (
     get_reference_audio_path,
     get_model_config_filename,
     get_model_weights_filename,
+    get_gen_default_seed,
     get_use_torch_compile,  # Import seed getter
     get_whisper_model_name,  # Import Whisper config getter
 )
@@ -99,6 +100,7 @@ from utils import (
     PerformanceMonitor,
     trim_lead_trail_silence,
     fix_internal_silence,
+    remove_long_unvoiced_segments,
     _generate_transcript_with_whisper,  # Import Whisper helper
 )
 
@@ -192,7 +194,7 @@ def load_model():
     model_device = get_device()
     compute_dtype_str = get_compute_dtype(model_device)  # Determine compute dtype
 
-    logger.info("Attempting to load Dia model:")
+    logger.info(f"Attempting to load Dia model:")
     logger.info(f"  Repo ID: {repo_id}")
     logger.info(f"  Config File: {config_filename}")
     logger.info(f"  Weights File: {weights_filename}")
@@ -221,6 +223,7 @@ def load_model():
             repo_id=repo_id,
             filename=config_filename,
             cache_dir=cache_path,
+            # force_download=True # Uncomment to force redownload for testing
         )
         logger.info(f"Configuration file path: {local_config_path}")
 
