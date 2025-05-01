@@ -6,7 +6,7 @@ __pycache__/
 .dist
 .idea
 outputs
-
+model_cache
 .env
 config.yam
 # Ignore development tools

@@ -12,10 +12,6 @@ docker compose logs -f
 ```
 
 ## Todos:
-- [ ] Dockerfile optimisation
-  - [ ] Bump CUDA versions
-  - [ ] Use runtime instead of devel build
-  - [ ] add multi-stage build
 - [ ] Model compile optimization as config
 - [ ] k8s deployment,
   - [ ] hpa,
