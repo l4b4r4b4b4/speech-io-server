@@ -103,19 +103,21 @@ docker compose logs -f
 
 ## 🔩 System Prerequisites
 
-*   **Operating System:** Windows 10/11 (64-bit) or Linux (Debian/Ubuntu recommended).
-*   **Python:** Version 3.10 or later ([Download](https://www.python.org/downloads/)).
-*   **Git:** For cloning the repository ([Download](https://git-scm.com/downloads)).
-*   **Internet:** For downloading dependencies and models.
-*   **(Optional but HIGHLY Recommended for Performance):**
-    *   **NVIDIA GPU:** CUDA-compatible (Maxwell architecture or newer). Check [NVIDIA CUDA GPUs](https://developer.nvidia.com/cuda-gpus). Optimized VRAM usage (~7GB typical), but more helps.
-    *   **NVIDIA Drivers:** Latest version for your GPU/OS ([Download](https://www.nvidia.com/Download/index.aspx)).
-    *   **CUDA Toolkit:** Compatible version (e.g., 11.8, 12.1) matching the PyTorch build you install.
-*   **(Linux Only):**
-    *   **NVIDIA CDI:** NVIDIA Container Device Interface enabled for docker runtime
+### For Running the Server
+* **Docker with Docker Compose:** For running the containerized application ([Install Docker](https://docs.docker.com/get-docker/))
+* **Internet:** For downloading the Docker image and models on first run
 
-    *   `libsndfile1`: Audio library needed by `soundfile`. Install via package manager (e.g., `sudo apt install libsndfile1`).
-    *   `ffmpeg`: Required by `openai-whisper`. Install via package manager (e.g., `sudo apt install ffmpeg`).
+### For GPU Acceleration (Optional but Recommended)
+* **NVIDIA GPU:** CUDA-compatible (Maxwell architecture or newer)
+* **NVIDIA Drivers:** Latest version for your GPU/OS ([Download](https://www.nvidia.com/Download/index.aspx))
+* **NVIDIA Container Toolkit:** For GPU access in containers ([Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html))
+* **NVIDIA Container Device Interface (CDI):** For modern GPU access method in containers
+
+### For Development
+* **Nix Package Manager:** For reproducible development environments ([Install Nix](https://nixos.org/download.html))
+* **Git:** For cloning the repository
+
+All other dependencies (Python, CUDA libraries, system packages) are handled automatically by either the Docker container or the Nix development shell.
 
 ## 💻 Installation and Setup
 
@@ -235,30 +237,40 @@ The most intuitive way to use the server:
     *   `temperature`: (Optional) Sampling temperature (0.0-1.0).
     *   `initial_prompt`: (Optional) Text to prepend to the audio.
 
-## 🔍 Troubleshooting
+## 🚀 Development with Nix
 
-*   **CUDA Not Available / Slow:** Check NVIDIA drivers (`nvidia-smi`), ensure correct CUDA-enabled PyTorch is installed (Installation Step 4).
-*   **VRAM Out of Memory (OOM):**
-    *   Ensure you are using the BF16 model (`dia-v0_1_bf16.safetensors` in `config.yaml`) if VRAM is limited (~7GB needed).
-    *   Close other GPU-intensive applications. VRAM optimizations and leak fixes have significantly reduced requirements.
-    *   If processing very long text even with chunking, try reducing `chunk_size` (e.g., 100).
-*   **CUDA Out of Memory (OOM) During Startup:** This can happen due to temporary overhead. The server loads weights to CPU first to mitigate this. If it persists, check VRAM usage (`nvidia-smi`), ensure BF16 model is used, or try setting `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` environment variable before starting.
-*   **Import Errors (`dac`, `tqdm`, `yaml`, `whisper`, `parselmouth`):** Activate venv, run `pip install -r requirements.txt`. Ensure `descript-audio-codec` installed correctly.
-*   **`libsndfile` / `ffmpeg` Error (Linux):** Run `sudo apt install libsndfile1 ffmpeg`.
-*   **Model Download Fails (Dia or Whisper):** Check internet, `config.yaml` settings (`model.repo_id`, `model.weights_filename`, `model.whisper_model_name`), Hugging Face status, cache path permissions (`paths.model_cache`).
-*   **Voice Cloning Fails / Poor Quality:**
-    *   **Ensure accurate `.txt` transcript exists** alongside the reference audio in `./reference_audio`. Format: `[S1] text...` or `[S1] text... [S2] text...`. This is the most reliable method.
-    *   Whisper fallback is experimental and may be inaccurate.
-    *   Use clean, clear reference audio (5-20s).
-    *   Check server logs for specific errors during `_prepare_cloning_inputs`.
-*   **Permission Errors (Saving Files/Config):** Check write permissions for `paths.output`, `paths.reference_audio`, `paths.voices`, `paths.model_cache` (for Whisper transcript saves), and `config.yaml`.
-*   **UI Issues / Settings Not Saving:** Clear browser cache/local storage. Check developer console (F12) for JS errors. Ensure `config.yaml` is writable by the server process.
-*   **Inconsistent Voice with Chunking:** Use "Predefined Voices" or "Voice Cloning" mode. If using "Random/Dialogue" mode with splitting, use a fixed integer `seed` (not -1) for consistency across chunks. The UI provides a warning otherwise.
-*   **Port Conflict (`Address already in use` / `Errno 98`):** Another process is using the port (default 8003). Stop the other process or change the `server.port` in `config.yaml` (requires restart).
-    *   **Explanation:** This usually happens if a previous server instance didn't shut down cleanly or another application is bound to the same port.
-    *   **Linux:** Find/kill process: `sudo lsof -i:PORT | grep LISTEN | awk '{print $2}' | xargs kill -9` (Replace PORT, e.g., 8003).
-    *   **Windows:** Find/kill process: `for /f "tokens=5" %i in ('netstat -ano ^| findstr :PORT') do taskkill /F /PID %i` (Replace PORT, e.g., 8003). Use with caution.
-*   **Generation Cancel Button:** This is a "UI Cancel" - it stops the *frontend* from waiting but doesn't instantly halt ongoing backend model inference. Clicking Generate again cancels the previous UI wait.
+This project supports development using the Nix package manager, providing a consistent and reproducible development environment across different platforms.
+
+### Prerequisites
+- Install [Nix package manager](https://nixos.org/download.html)
+- Enable [Flakes](https://nixos.wiki/wiki/Flakes) by adding the following to your `~/.config/nix/nix.conf`:
+  ```
+  experimental-features = nix-command flakes
+  ```
+
+### Quick Start with Nix
+Simply run the following command in the repository root:
+```bash
+nix develop
+```
+
+This will:
+1. Set up a development environment with all dependencies (including CUDA if supported)
+2. Create a Python virtual environment
+3. Install all required Python packages
+4. Configure Jupyter kernels
+5. Run diagnostics to verify CUDA availability
+
+### Features of the Nix Development Environment
+- Reproducible development environment across Linux, macOS, and various architectures
+- CUDA support automatically configured when available
+- Complete Python environment with all dependencies
+- Jupyter integration for notebook-based development
+- System diagnostics to verify correct setup
+
+When inside the Nix shell:
+- Run `setup_environment` to reinstall/update dependencies
+- Use standard commands like `python server.py` to run the server
 
 ### Selecting GPUs on Multi-GPU Systems
 
@@ -288,20 +300,7 @@ You can find it here: [https://opensource.org/licenses/MIT](https://opensource.o
 
 ## 🙏 Acknowledgements
 
-*   **Core Model:** This project heavily relies on the excellent **[Dia TTS model](https://github.com/nari-labs/dia)** developed by **[Nari Labs](https://github.com/nari-labs)**. Their work in creating and open-sourcing the model is greatly appreciated.
-*   **UI Inspiration:** Special thanks to **[Lex-au](https://github.com/Lex-au)** whose **[Orpheus-FastAPI](https://github.com/Lex-au/Orpheus-FastAPI)** project served as inspiration for the web interface design of this project.
-*   **SafeTensors Conversion:** Thank you to user **[ttj on Hugging Face](https://huggingface.co/ttj)** for providing the converted **[SafeTensors weights](https://huggingface.co/ttj/dia-1.6b-safetensors)** used as the default in this server.
-*   **Containerization Technologies:** [Docker](https://www.docker.com/) and [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) for enabling consistent deployment environments.
-*   **Core Libraries:**
-    *   [FastAPI](https://fastapi.tiangolo.com/)
-    *   [Uvicorn](https://www.uvicorn.org/)
-    *   [PyTorch](https://pytorch.org/)
-    *   [Hugging Face Hub](https://huggingface.co/docs/huggingface_hub/index) & [SafeTensors](https://github.com/huggingface/safetensors)
-    *   [Descript Audio Codec (DAC)](https://github.com/descriptinc/descript-audio-codec)
-    *   [SoundFile](https://python-soundfile.readthedocs.io/) & [libsndfile](http://www.mega-nerd.com/libsndfile/)
-    *   [Jinja2](https://jinja.palletsprojects.com/)
-    *   [WaveSurfer.js](https://wavesurfer.xyz/)
-    *   [Tailwind CSS](https://tailwindcss.com/) (via CDN)
+[Dia-TTS-Server](https://github.com/devnen/Dia-TTS-Server) For providing the base for this project.
 
 ---
 
